@@ -1,0 +1,204 @@
+/* ============================================
+   css/sidebar.css — Sidebar styles
+   ============================================ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px 24px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* --- Profile block --- */
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 4px;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent-dark);
+  text-transform: uppercase;
+}
+
+.sidebar-login {
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+.sidebar-since {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* --- Divider --- */
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 18px 0;
+}
+
+/* --- Section --- */
+.sidebar-section {
+  /* spacing wrapper */
+}
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.sidebar-value {
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.sidebar-value--sm {
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  margin-bottom: 0;
+}
+
+/* --- XP bar --- */
+.xp-bar-track {
+  height: 5px;
+  background: var(--accent-light);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.xp-bar-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* --- Audit --- */
+.audit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audit-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.audit-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-done { background: var(--accent); }
+.dot-recv { background: var(--text-muted); }
+
+.audit-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.audit-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* --- Piscines --- */
+.piscine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.piscine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.piscine-name {
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* --- Spacer + logout --- */
+.sidebar-spacer {
+  flex: 1;
+}
+
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-logout:hover {
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: #fca5a5;
+}
+
+/* --- Responsive --- */
+@media (max-width: 760px) {
+  .sidebar { display: none; }
+}

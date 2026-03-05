@@ -1,0 +1,106 @@
+/* ============================================
+   css/base.css — Variables, reset, utilities
+   ============================================ */
+
+/* --- Variables --- */
+:root {
+  --bg:           #f7f7f5;
+  --surface:      #ffffff;
+  --border:       #e4e4e0;
+  --border-focus: #8b5cf6;
+
+  --accent:       #8b5cf6;
+  --accent-dark:  #7c3aed;
+  --accent-light: #ede9fe;
+  --accent-faint: #f5f3ff;
+
+  --green:        #22c55e;
+  --green-bg:     #f0fdf4;
+  --red:          #ef4444;
+  --red-bg:       #fff1f2;
+
+  --text-primary:     #1a1a1a;
+  --text-secondary:   #6b6b6b;
+  --text-muted:       #a0a0a0;
+  --text-placeholder: #b0b0a8;
+
+  --error-bg:     #fff1f2;
+  --error-border: #fca5a5;
+  --error-text:   #dc2626;
+
+  --panel-bg:     #1a1523;
+  --panel-sub:    #a78bfa;
+
+  --sidebar-w:    260px;
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+/* --- Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* --- Animations --- */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* --- Utilities --- */
+.fade-in {
+  animation: fadeIn 0.3s ease both;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--accent-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Shared badge */
+.badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.badge-pass { background: var(--green-bg); color: var(--green); }
+.badge-fail { background: var(--red-bg);   color: var(--red);   }
+.badge-na   {
+  background: var(--bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
