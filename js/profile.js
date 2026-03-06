@@ -278,12 +278,10 @@ function setText(id, value) {
   if (el) el.textContent = value ?? '—';
 }
 
-// XP is already converted to kB in graphql.js (bytes / 1000)
-// So we just display with kB suffix
 function formatXP(n) {
-  if (n == null) return '—';
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} MB`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} kB`;
+  if (n == null) return "—";
+  if (n >= 1_000_000) return `${Math.round(n / 1_000_000)} MB`;
+  if (n >= 1_000)     return `${Math.round(n / 1_000)} kB`;
   return `${n} B`;
 }
 

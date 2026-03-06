@@ -68,22 +68,25 @@ export async function fetchUserInfo() {
 export async function fetchXPTransactions() {
   const data = await query(`
     {
-      transaction(
-        where: {
-          type:   { _eq: "xp" }
-          amount: { _gt: 0 }
+      user {
+        transactions(
+          where: {
+            type:    { _eq: "xp" }
+            amount:  { _gt: 0 }
+            eventId: { _eq: 96 }
+          }
+          order_by: { createdAt: asc }
+        ) {
+          id
+          amount
+          createdAt
+          path
+          objectId
         }
-        order_by: { createdAt: asc }
-      ) {
-        id
-        amount
-        createdAt
-        path
-        objectId
       }
     }
   `);
-  return data?.transaction || [];
+  return data?.user?.[0]?.transactions || [];
 }
 
 // ============================================
@@ -136,20 +139,22 @@ export async function fetchUserLevel(userId) {
 export async function fetchTotalXPBytes() {
   const data = await query(`
     {
-      transaction_aggregate(
-        where: {
-          type:   { _eq: "xp" }
-          amount: { _gt: 0 }
-          path:   { _ilike: "%/astanahub/module/%" }
-        }
-      ) {
-        aggregate {
-          sum { amount }
+      user {
+        transactions_aggregate(
+          where: {
+            type:    { _eq: "xp" }
+            amount:  { _gt: 0 }
+            eventId: { _eq: 96 }
+          }
+        ) {
+          aggregate {
+            sum { amount }
+          }
         }
       }
     }
   `);
-  return data?.transaction_aggregate?.aggregate?.sum?.amount || 0;
+  return data?.user?.[0]?.transactions_aggregate?.aggregate?.sum?.amount || 0;
 }
 
 // ============================================
@@ -278,8 +283,8 @@ export async function fetchAllProfileData() {
     fetchXPPerProject(),
   ]);
 
-  // XP is stored in bytes — convert to kB for display
-  const totalXP = Math.round(totalXPBytes / 1000);
+  // totalXP as-is (e.g. 637750)
+  const totalXP = totalXPBytes;
 
   return {
     userInfo,

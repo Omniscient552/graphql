@@ -10,7 +10,8 @@ export function renderCharts(data) {
 }
 
 // ============================================
-//  CHART 1 — XP over time (line chart)
+//  CHART 1 — XP per transaction (bar chart)
+//  Each bar = how much XP earned in that transaction
 // ============================================
 function renderXPChart(transactions) {
   const container = document.getElementById('chartXPBody');
@@ -21,71 +22,57 @@ function renderXPChart(transactions) {
     return;
   }
 
-  // Build cumulative XP points
-  let cumulative = 0;
-  const points = transactions.map(t => {
-    cumulative += t.amount;
-    return {
-      date:  new Date(t.createdAt),
-      xp:    cumulative,
-    };
-  });
+  // Each bar is one transaction
+  const bars = transactions.map(t => ({
+    date:  new Date(t.createdAt),
+    xp:    t.amount,
+    label: t.path?.split('/').pop() || '—',
+  }));
+
+  const maxXP = Math.max(...bars.map(b => b.xp));
 
   // SVG dimensions
   const W      = 600;
-  const H      = 200;
-  const PAD    = { top: 16, right: 16, bottom: 36, left: 56 };
+  const H      = 300;
+  const PAD    = { top: 24, right: 24, bottom: 36, left: 56 };
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top  - PAD.bottom;
 
-  // Scales
-  const minDate  = points[0].date.getTime();
-  const maxDate  = points[points.length - 1].date.getTime();
-  const maxXP    = points[points.length - 1].xp;
+  // Bar width — fit all bars with 1px gap minimum
+  const barW   = Math.max(5, Math.floor((innerW / bars.length) * 0.95));
+  const gap    = Math.max(1, Math.floor(innerW / bars.length) - barW);
 
-  const scaleX = (date) =>
-    PAD.left + ((date.getTime() - minDate) / (maxDate - minDate || 1)) * innerW;
+  const scaleY = (xp) => (xp / (maxXP || 1)) * innerH;
 
-  const scaleY = (xp) =>
-    PAD.top + innerH - (xp / (maxXP || 1)) * innerH;
-
-  // Build polyline points string
-  const polylinePoints = points
-    .map(p => `${scaleX(p.date).toFixed(1)},${scaleY(p.xp).toFixed(1)}`)
-    .join(' ');
-
-  // Area fill path (close below the line)
-  const firstX = scaleX(points[0].date).toFixed(1);
-  const lastX  = scaleX(points[points.length - 1].date).toFixed(1);
-  const baseY  = (PAD.top + innerH).toFixed(1);
-
-  const areaPath =
-    `M ${firstX},${baseY} ` +
-    points.map(p => `L ${scaleX(p.date).toFixed(1)},${scaleY(p.xp).toFixed(1)}`).join(' ') +
-    ` L ${lastX},${baseY} Z`;
-
-  // Y-axis labels (4 ticks)
+  // Y-axis ticks
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => ({
     value: Math.round(maxXP * f),
-    y:     scaleY(maxXP * f),
+    y:     PAD.top + innerH - scaleY(maxXP * f),
   }));
 
-  // X-axis labels (first + last + 2 middle)
-  const xLabelIndices = getSpreadIndices(points.length, 4);
+  // X-axis labels — spread 4 evenly
+  const xLabelIndices = getSpreadIndices(bars.length, 4);
   const xLabels = xLabelIndices.map(i => ({
-    label: formatChartDate(points[i].date),
-    x:     scaleX(points[i].date),
+    label: formatChartDate(bars[i].date),
+    x:     PAD.left + i * (barW + gap) + barW / 2,
   }));
 
-  // Tooltip dots — only every Nth point to avoid clutter
-  const step = Math.max(1, Math.floor(points.length / 20));
-  const dots = points
-    .filter((_, i) => i % step === 0 || i === points.length - 1)
-    .map(p => ({
-      cx:    scaleX(p.date).toFixed(1),
-      cy:    scaleY(p.xp).toFixed(1),
-      label: `${formatChartDate(p.date)}: ${formatXP(p.xp)}`,
-    }));
+  // Build bars SVG
+  const barsSVG = bars.map((b, i) => {
+    const x      = PAD.left + i * (barW + gap);
+    const bh     = Math.max(1, scaleY(b.xp));
+    const y      = PAD.top + innerH - bh;
+    const tip    = `${formatChartDate(b.date)} — ${b.label}: +${formatXP(b.xp)}`;
+    return `
+      <rect
+        x="${x.toFixed(1)}" y="${y.toFixed(1)}"
+        width="${barW}" height="${bh.toFixed(1)}"
+        fill="#8b5cf6" opacity="0.75" rx="1"
+      >
+        <title>${tip}</title>
+      </rect>
+    `;
+  }).join('');
 
   container.innerHTML = `
     <svg
@@ -93,24 +80,8 @@ function renderXPChart(transactions) {
       xmlns="http://www.w3.org/2000/svg"
       style="width:100%;height:auto;overflow:visible;"
       role="img"
-      aria-label="XP over time chart"
+      aria-label="XP per transaction bar chart"
     >
-      <defs>
-        <!-- Gradient fill under line -->
-        <linearGradient id="xpGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#8b5cf6" stop-opacity="0.15"/>
-          <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.01"/>
-        </linearGradient>
-
-        <!-- Clip to chart area -->
-        <clipPath id="xpClip">
-          <rect
-            x="${PAD.left}" y="${PAD.top}"
-            width="${innerW}" height="${innerH}"
-          />
-        </clipPath>
-      </defs>
-
       <!-- Y grid lines + labels -->
       ${yTicks.map(t => `
         <line
@@ -135,34 +106,8 @@ function renderXPChart(transactions) {
         >${l.label}</text>
       `).join('')}
 
-      <!-- Area fill (clipped) -->
-      <path
-        d="${areaPath}"
-        fill="url(#xpGradient)"
-        clip-path="url(#xpClip)"
-      />
-
-      <!-- Line (clipped) -->
-      <polyline
-        points="${polylinePoints}"
-        fill="none"
-        stroke="#8b5cf6"
-        stroke-width="2"
-        stroke-linejoin="round"
-        stroke-linecap="round"
-        clip-path="url(#xpClip)"
-      />
-
-      <!-- Interactive dots with tooltips -->
-      ${dots.map(d => `
-        <circle
-          cx="${d.cx}" cy="${d.cy}" r="3"
-          fill="#8b5cf6" stroke="#fff" stroke-width="1.5"
-          clip-path="url(#xpClip)"
-        >
-          <title>${d.label}</title>
-        </circle>
-      `).join('')}
+      <!-- Bars -->
+      ${barsSVG}
 
       <!-- Axes -->
       <line
