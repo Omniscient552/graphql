@@ -77,7 +77,9 @@
 
 .btn-retry:hover { background: var(--accent-dark); }
 
-/* --- Stats grid --- */
+/* ============================================
+   VIEW: OVERVIEW
+   ============================================ */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -93,9 +95,7 @@
   transition: box-shadow 0.15s;
 }
 
-.stat-card:hover {
-  box-shadow: var(--shadow);
-}
+.stat-card:hover { box-shadow: var(--shadow); }
 
 .stat-label {
   font-size: 11px;
@@ -113,7 +113,7 @@
   line-height: 1;
 }
 
-/* --- Charts --- */
+/* Charts */
 .charts-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -128,9 +128,7 @@
   padding: 24px;
 }
 
-.chart-card-header {
-  margin-bottom: 20px;
-}
+.chart-card-header { margin-bottom: 20px; }
 
 .chart-title {
   font-size: 15px;
@@ -143,11 +141,71 @@
   color: var(--text-muted);
 }
 
-.chart-body {
-  width: 100%;
+.chart-body { width: 100%; }
+
+/* ============================================
+   VIEW: PERSONAL INFO
+   ============================================ */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
-/* --- Projects table --- */
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.info-card-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-key {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.info-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-word;
+}
+
+.info-value.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ============================================
+   VIEW: PROJECTS
+   ============================================ */
 .projects-section {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -176,9 +234,7 @@
   border-radius: 99px;
 }
 
-.table-wrap {
-  overflow-x: auto;
-}
+.table-wrap { overflow-x: auto; }
 
 .projects-table {
   width: 100%;
@@ -212,7 +268,7 @@
 .project-name {
   font-family: var(--font-mono);
   font-size: 12px;
-  max-width: 280px;
+  max-width: 260px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -240,10 +296,79 @@
   white-space: nowrap;
 }
 
-/* --- Responsive --- */
+/* ============================================
+   VIEW: PISCINES
+   ============================================ */
+.piscines-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.piscine-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  transition: box-shadow 0.15s;
+}
+
+.piscine-card:hover { box-shadow: var(--shadow); }
+
+.piscine-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.piscine-card-name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.piscine-card-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.piscine-grade-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.piscine-grade-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.piscine-grade-value {
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.piscine-card.not-attempted {
+  opacity: 0.5;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 @media (max-width: 1100px) {
   .stats-grid     { grid-template-columns: repeat(2, 1fr); }
   .charts-section { grid-template-columns: 1fr; }
+  .info-grid      { grid-template-columns: 1fr; }
+  .piscines-grid  { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {

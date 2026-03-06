@@ -1,13 +1,19 @@
 // ============================================
-//  js/app.js — SPA Router (ES Module entry)
+//  js/app.js — SPA Router + Navigation
 // ============================================
 
 import { getJWT, saveJWT, clearJWT, signIn } from './auth.js';
 import { fetchAllProfileData }               from './graphql.js';
-import { populateProfile }                   from './profile.js';
+import { populateProfile, populateSidebarUser,
+         renderOverview, renderPersonalInfo,
+         renderProjects, renderPiscines }    from './profile.js';
 import { renderCharts }                      from './charts.js';
 
 const app = document.getElementById('app');
+
+// Active view state
+let _currentView = 'overview';
+let _profileData = null;
 
 // ── Entry point ──────────────────────────────
 function init() {
@@ -24,7 +30,6 @@ function init() {
 function renderLogin() {
   app.innerHTML = `
     <div class="login-page fade-in">
-
       <div class="login-panel-left">
         <div class="brand">
           <span class="brand-dot"></span>
@@ -43,7 +48,6 @@ function renderLogin() {
 
       <div class="login-panel-right">
         <div class="form-container">
-
           <div class="form-header">
             <h1 class="form-title">Sign in</h1>
             <p class="form-subtitle">Use your username or email</p>
@@ -70,7 +74,7 @@ function renderLogin() {
             <div class="input-wrapper">
               <input class="field-input" type="password" id="password"
                 placeholder="••••••••" autocomplete="current-password" />
-              <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password">
+              <button type="button" class="toggle-password" id="togglePassword">
                 <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -85,7 +89,6 @@ function renderLogin() {
             <span class="btn-text">Sign in</span>
             <span class="btn-loader"></span>
           </button>
-
         </div>
       </div>
     </div>
@@ -102,17 +105,9 @@ function bindLoginEvents() {
   const errorBox   = document.getElementById('errorBox');
   const errorText  = document.getElementById('errorText');
 
-  const showError = (msg) => {
-    errorText.textContent = msg;
-    errorBox.classList.add('visible');
-  };
-
-  const hideError = () => errorBox.classList.remove('visible');
-
-  const setLoading = (on) => {
-    submitBtn.disabled = on;
-    submitBtn.classList.toggle('loading', on);
-  };
+  const showError  = (msg) => { errorText.textContent = msg; errorBox.classList.add('visible'); };
+  const hideError  = ()    => errorBox.classList.remove('visible');
+  const setLoading = (on)  => { submitBtn.disabled = on; submitBtn.classList.toggle('loading', on); };
 
   toggleBtn.addEventListener('click', () => {
     const hidden = passwordIn.type === 'password';
@@ -130,15 +125,13 @@ function bindLoginEvents() {
     const identifier = document.getElementById('identifier').value.trim();
     const password   = document.getElementById('password').value;
 
-    if (!identifier || !password) {
-      showError('Please fill in all fields.');
-      return;
-    }
+    if (!identifier || !password) { showError('Please fill in all fields.'); return; }
 
     setLoading(true);
     try {
       const jwt = await signIn(identifier, password);
       saveJWT(jwt);
+      _currentView = 'overview';
       renderProfile();
     } catch (err) {
       showError(err.message);
@@ -147,197 +140,148 @@ function bindLoginEvents() {
   };
 
   submitBtn.addEventListener('click', handleSubmit);
-
-  // Enter key support
-  [document.getElementById('identifier'), passwordIn].forEach(el =>
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSubmit(); })
-  );
+  document.getElementById('identifier').addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+  passwordIn.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
 }
 
 // ============================================
-//  PROFILE VIEW
+//  PROFILE SHELL (sidebar + main wrapper)
 // ============================================
 function renderProfile() {
   app.innerHTML = `
     <div class="profile-page fade-in">
 
+      <!-- ── SIDEBAR ── -->
       <aside class="sidebar">
-        <div class="sidebar-profile">
+
+        <!-- User block (always visible) -->
+        <div class="sidebar-user">
           <div class="avatar">
             <span class="avatar-initials" id="avatarInitials">?</span>
           </div>
-          <div>
-            <p class="sidebar-login" id="userLogin">—</p>
-            <p class="sidebar-since" id="userSince"></p>
+          <p class="sidebar-fullname" id="sidebarFullname">—</p>
+          <p class="sidebar-login"    id="sidebarLogin">—</p>
+          <div class="sidebar-chips">
+            <span class="sidebar-chip">
+              <span class="sidebar-chip-label">lvl</span>
+              <span id="sidebarLevel">—</span>
+            </span>
+            <span class="sidebar-chip">
+              <span id="sidebarRatio">—</span>
+            </span>
           </div>
         </div>
 
         <div class="sidebar-divider"></div>
 
-        <div class="sidebar-section">
-          <p class="sidebar-label">Level</p>
-          <p class="sidebar-value" id="userLevel">—</p>
-          <div class="xp-bar-track">
-            <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
-          </div>
-          <p class="xp-bar-label" id="xpLabel">0 XP</p>
-        </div>
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
 
-        <div class="sidebar-divider"></div>
+          <button class="nav-item active" data-view="overview">
+            ${icon('grid')}
+            Overview
+          </button>
 
-        <div class="sidebar-section">
-          <p class="sidebar-label">Audit Ratio</p>
-          <p class="sidebar-value" id="auditRatio">—</p>
-          <div class="audit-row">
-            <div class="audit-item">
-              <span class="audit-dot dot-done"></span>
-              <span class="audit-text">Done <strong id="auditDone">—</strong></span>
-            </div>
-            <div class="audit-item">
-              <span class="audit-dot dot-recv"></span>
-              <span class="audit-text">Received <strong id="auditReceived">—</strong></span>
-            </div>
-          </div>
-        </div>
+          <button class="nav-item" data-view="personal">
+            ${icon('user')}
+            Personal Info
+          </button>
 
-        <div class="sidebar-divider"></div>
+          <button class="nav-item" data-view="projects">
+            ${icon('folder')}
+            Projects
+          </button>
 
-        <div class="sidebar-section">
-          <p class="sidebar-label">Batch</p>
-          <p class="sidebar-value sidebar-value--sm" id="userBatch">—</p>
-        </div>
+          <button class="nav-item" data-view="piscines">
+            ${icon('activity')}
+            Piscines
+          </button>
 
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-section">
-          <p class="sidebar-label">Piscines</p>
-          <div class="piscine-list" id="piscineList">
-            <p style="font-size:12px;color:var(--text-muted)">Loading...</p>
-          </div>
-        </div>
+        </nav>
 
         <div class="sidebar-spacer"></div>
 
         <button class="btn-logout" id="logoutBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
+          ${icon('log-out')}
           Sign out
         </button>
       </aside>
 
-      <main class="main">
+      <!-- ── MAIN ── -->
+      <main class="main" id="mainContent">
+
         <header class="topbar">
-          <h1 class="topbar-title">Profile</h1>
-          <p class="topbar-sub" id="topbarSub">Welcome back</p>
+          <h1 class="topbar-title" id="topbarTitle">Overview</h1>
+          <p class="topbar-sub"    id="topbarSub">Welcome back</p>
         </header>
 
+        <!-- Loading -->
         <div class="loading-state" id="loadingState">
           <div class="spinner"></div>
           <p>Fetching your data...</p>
         </div>
 
+        <!-- Error -->
         <div class="error-state" id="errorState" style="display:none">
           <p class="error-state-icon">⚠️</p>
           <p class="error-state-msg" id="profileErrorMsg">Something went wrong.</p>
           <button class="btn-retry" id="retryBtn">Try again</button>
         </div>
 
-        <div id="profileContent" style="display:none">
+        <!-- View content injected here -->
+        <div id="viewContent" style="display:none"></div>
 
-          <section class="stats-grid">
-            <div class="stat-card">
-              <p class="stat-label">Total XP</p>
-              <p class="stat-value" id="statXP">—</p>
-            </div>
-            <div class="stat-card">
-              <p class="stat-label">Projects done</p>
-              <p class="stat-value" id="statProjects">—</p>
-            </div>
-            <div class="stat-card">
-              <p class="stat-label">Pass rate</p>
-              <p class="stat-value" id="statPassRate">—</p>
-            </div>
-            <div class="stat-card">
-              <p class="stat-label">Audit ratio</p>
-              <p class="stat-value" id="statAuditRatio">—</p>
-            </div>
-          </section>
-
-          <section class="charts-section">
-            <div class="chart-card">
-              <div class="chart-card-header">
-                <h2 class="chart-title">XP over time</h2>
-                <p class="chart-sub">Cumulative XP growth</p>
-              </div>
-              <div class="chart-body" id="chartXPBody"></div>
-            </div>
-            <div class="chart-card">
-              <div class="chart-card-header">
-                <h2 class="chart-title">Audit ratio</h2>
-                <p class="chart-sub">Done vs received</p>
-              </div>
-              <div class="chart-body" id="chartAuditBody"></div>
-            </div>
-          </section>
-
-          <section class="projects-section">
-            <div class="section-header">
-              <h2 class="section-title">Projects</h2>
-              <span class="section-badge" id="projectsBadge">0</span>
-            </div>
-            <div class="table-wrap">
-              <table class="projects-table">
-                <thead>
-                  <tr>
-                    <th>Project</th>
-                    <th>Grade</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody id="projectsBody"></tbody>
-              </table>
-            </div>
-          </section>
-
-        </div>
       </main>
     </div>
   `;
 
+  // Events
   document.getElementById('logoutBtn').addEventListener('click', () => {
     clearJWT();
+    _profileData = null;
     renderLogin();
   });
 
   document.getElementById('retryBtn').addEventListener('click', renderProfile);
 
+  // Nav clicks
+  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchView(btn.dataset.view);
+    });
+  });
+
   loadProfileData();
 }
 
-// ── Fetch & display profile data ─────────────
+// ============================================
+//  LOAD DATA
+// ============================================
 async function loadProfileData() {
-  const loadingState   = document.getElementById('loadingState');
-  const errorState     = document.getElementById('errorState');
-  const profileContent = document.getElementById('profileContent');
+  const loadingState = document.getElementById('loadingState');
+  const errorState   = document.getElementById('errorState');
+  const viewContent  = document.getElementById('viewContent');
 
   try {
-    const data = await fetchAllProfileData();
+    _profileData = await fetchAllProfileData();
 
-    loadingState.style.display   = 'none';
-    profileContent.style.display = 'block';
+    loadingState.style.display = 'none';
+    viewContent.style.display  = 'block';
 
-    populateProfile(data);
-    renderCharts(data);
+    // Fill static sidebar user block
+    populateSidebarUser(_profileData);
+
+    // Update topbar sub with login
+    const login = _profileData.userInfo?.login || '';
+    document.getElementById('topbarSub').textContent = `@${login}`;
+    document.title = `${login}'s Profile — 01`;
+
+    // Render current view
+    switchView(_currentView, true);
 
   } catch (err) {
     console.error(err);
 
-    // Session expired → back to login
     if (err.message === 'SESSION_EXPIRED' || err.message === 'NOT_AUTHENTICATED') {
       clearJWT();
       renderLogin();
@@ -349,6 +293,83 @@ async function loadProfileData() {
     document.getElementById('profileErrorMsg').textContent =
       err.message || 'Failed to load profile data.';
   }
+}
+
+// ============================================
+//  SWITCH VIEW
+// ============================================
+const VIEW_TITLES = {
+  overview: 'Overview',
+  personal: 'Personal Info',
+  projects: 'Projects',
+  piscines: 'Piscines',
+};
+
+function switchView(view, skipNavUpdate = false) {
+  if (!_profileData) return;
+  _currentView = view;
+
+  // Update nav active state
+  if (!skipNavUpdate) {
+    document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+  }
+
+  // Update topbar title
+  const titleEl = document.getElementById('topbarTitle');
+  if (titleEl) titleEl.textContent = VIEW_TITLES[view] || 'Profile';
+
+  // Render view HTML into #viewContent
+  const container = document.getElementById('viewContent');
+  if (!container) return;
+
+  switch (view) {
+    case 'overview':
+      container.innerHTML = renderOverview(_profileData);
+      renderCharts(_profileData);
+      break;
+    case 'personal':
+      container.innerHTML = renderPersonalInfo(_profileData);
+      break;
+    case 'projects':
+      container.innerHTML = renderProjects(_profileData);
+      break;
+    case 'piscines':
+      container.innerHTML = renderPiscines(_profileData);
+      break;
+    default:
+      container.innerHTML = renderOverview(_profileData);
+      renderCharts(_profileData);
+  }
+}
+
+// ============================================
+//  SVG ICONS (inline, no external deps)
+// ============================================
+function icon(name) {
+  const icons = {
+    'grid': `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>`,
+    'user': `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>`,
+    'folder': `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>`,
+    'activity': `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>`,
+    'log-out': `<svg style="width:15px;height:15px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>`,
+  };
+  return icons[name] || '';
 }
 
 // ── Start ─────────────────────────────────────

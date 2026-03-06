@@ -336,10 +336,10 @@ function formatChartDate(date) {
   return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
 }
 
-// 123456 → "123.5k"
+// XP already in kB (converted in graphql.js)
 function formatXP(n) {
   if (n == null) return '—';
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} MB`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} kB`;
+  return `${n} B`;
 }

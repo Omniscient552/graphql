@@ -40,7 +40,9 @@ async function query(gql, variables = {}) {
 }
 
 // ============================================
-//  QUERY 1 — Basic user info (normal query)
+//  QUERY 1 — User info + labels (nested query)
+//  labels → batch name (e.g. "Batch 2")
+//  attrs  → firstName, lastName, city
 // ============================================
 export async function fetchUserInfo() {
   const data = await query(`
@@ -50,6 +52,9 @@ export async function fetchUserInfo() {
         login
         attrs
         createdAt
+        labels {
+          labelName
+        }
       }
     }
   `);
@@ -58,12 +63,16 @@ export async function fetchUserInfo() {
 
 // ============================================
 //  QUERY 2 — XP transactions (normal + order)
+//  FIX: filter out negative amounts (raid penalties)
 // ============================================
 export async function fetchXPTransactions() {
   const data = await query(`
     {
       transaction(
-        where: { type: { _eq: "xp" } }
+        where: {
+          type:   { _eq: "xp" }
+          amount: { _gt: 0 }
+        }
         order_by: { createdAt: asc }
       ) {
         id
@@ -97,25 +106,55 @@ export async function fetchAuditStats() {
 }
 
 // ============================================
-//  QUERY 4 — User level
+//  QUERY 4 — User level via event_user
+//  eventId 96 = main curriculum (astanahub)
 // ============================================
-export async function fetchUserLevel() {
-  const data = await query(`
-    {
-      transaction(
-        where: { type: { _eq: "level" } }
-        order_by: { amount: desc }
+export async function fetchUserLevel(userId) {
+  const data = await query(
+    `
+    query GetLevel($userId: Int!) {
+      event_user(
+        where: {
+          userId:  { _eq: $userId }
+          eventId: { _eq: 96 }
+        }
         limit: 1
       ) {
-        amount
+        level
+      }
+    }
+    `,
+    { userId: parseInt(userId) }
+  );
+  return data?.event_user?.[0]?.level || 0;
+}
+
+// ============================================
+//  QUERY 4b — Total XP (bytes)
+//  XP stored in bytes, filtered to main module
+// ============================================
+export async function fetchTotalXPBytes() {
+  const data = await query(`
+    {
+      transaction_aggregate(
+        where: {
+          type:   { _eq: "xp" }
+          amount: { _gt: 0 }
+          path:   { _ilike: "%/astanahub/module/%" }
+        }
+      ) {
+        aggregate {
+          sum { amount }
+        }
       }
     }
   `);
-  return data?.transaction?.[0]?.amount || 0;
+  return data?.transaction_aggregate?.aggregate?.sum?.amount || 0;
 }
 
 // ============================================
 //  QUERY 5 — Projects (nested: result → object)
+//  Only type: "project", not exercises/raids
 // ============================================
 export async function fetchProjects() {
   const data = await query(`
@@ -138,9 +177,10 @@ export async function fetchProjects() {
 
 // ============================================
 //  QUERY 6 — Piscines (with arguments: _ilike)
+//  FIX: use /astanahub/ path prefix
 // ============================================
 export async function fetchPiscineResults() {
-  const piscines = ['piscine-go', 'piscine-js', 'piscine-rust', 'piscine-ai'];
+  const piscines = ['piscinego', 'piscine-js', 'piscine-rust', 'piscine-ai'];
   const results  = {};
 
   for (const piscine of piscines) {
@@ -175,12 +215,16 @@ export async function fetchPiscineResults() {
 
 // ============================================
 //  QUERY 7 — XP per project (nested + grouped)
+//  FIX: filter negative amounts + only positive XP
 // ============================================
 export async function fetchXPPerProject() {
   const data = await query(`
     {
       transaction(
-        where: { type: { _eq: "xp" } }
+        where: {
+          type:   { _eq: "xp" }
+          amount: { _gt: 0 }
+        }
         order_by: { amount: desc }
       ) {
         amount
@@ -211,29 +255,36 @@ export async function fetchXPPerProject() {
 //  MAIN — fetch everything in parallel
 // ============================================
 export async function fetchAllProfileData() {
+  // Step 1: get user info first (need userId for level query)
+  const userInfo = await fetchUserInfo();
+  const userId   = userInfo?.id;
+
+  // Step 2: fetch everything else in parallel
   const [
-    userInfo,
     xpTransactions,
+    totalXPBytes,
     auditStats,
     level,
     projects,
     piscines,
     xpPerProject,
   ] = await Promise.all([
-    fetchUserInfo(),
     fetchXPTransactions(),
+    fetchTotalXPBytes(),
     fetchAuditStats(),
-    fetchUserLevel(),
+    fetchUserLevel(userId),
     fetchProjects(),
     fetchPiscineResults(),
     fetchXPPerProject(),
   ]);
 
-  const totalXP = xpTransactions.reduce((s, t) => s + t.amount, 0);
+  // XP is stored in bytes — convert to kB for display
+  const totalXP = Math.round(totalXPBytes / 1000);
 
   return {
     userInfo,
     totalXP,
+    totalXPBytes,
     xpTransactions,
     auditStats,
     level,
