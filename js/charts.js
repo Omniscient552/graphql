@@ -31,16 +31,14 @@ function renderXPChart(transactions) {
 
   const maxXP = Math.max(...bars.map(b => b.xp));
 
-  // SVG dimensions
-  const W      = 600;
-  const H      = 300;
+  // SVG dimensions — width is dynamic based on bar count
+  const BAR_W  = 5;    // bar width px
+  const GAP    = 2;    // gap between bars px
   const PAD    = { top: 24, right: 24, bottom: 36, left: 56 };
-  const innerW = W - PAD.left - PAD.right;
-  const innerH = H - PAD.top  - PAD.bottom;
-
-  // Bar width — fit all bars with 1px gap minimum
-  const barW   = Math.max(5, Math.floor((innerW / bars.length) * 0.95));
-  const gap    = Math.max(1, Math.floor(innerW / bars.length) - barW);
+  const H      = 300;
+  const innerW = bars.length * (BAR_W + GAP) - GAP;
+  const W      = PAD.left + innerW + PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
 
   const scaleY = (xp) => (xp / (maxXP || 1)) * innerH;
 
@@ -54,31 +52,34 @@ function renderXPChart(transactions) {
   const xLabelIndices = getSpreadIndices(bars.length, 4);
   const xLabels = xLabelIndices.map(i => ({
     label: formatChartDate(bars[i].date),
-    x:     PAD.left + i * (barW + gap) + barW / 2,
+    x:     PAD.left + i * (BAR_W + GAP) + BAR_W / 2,
   }));
 
   // Build bars SVG
   const barsSVG = bars.map((b, i) => {
-    const x      = PAD.left + i * (barW + gap);
-    const bh     = Math.max(1, scaleY(b.xp));
-    const y      = PAD.top + innerH - bh;
-    const tip    = `${formatChartDate(b.date)} — ${b.label}: +${formatXP(b.xp)}`;
+    const x   = PAD.left + i * (BAR_W + GAP);
+    const bh  = Math.max(1, scaleY(b.xp));
+    const y   = PAD.top + innerH - bh;
+    const tip = `${formatChartDate(b.date)} — ${b.label}: +${formatXP(b.xp)}`;
     return `
       <rect
         x="${x.toFixed(1)}" y="${y.toFixed(1)}"
-        width="${barW}" height="${bh.toFixed(1)}"
-        fill="#8b5cf6" opacity="0.75" rx="1"
+        width="${BAR_W}" height="${bh.toFixed(1)}"
+        fill="#8b5cf6" opacity="0.75" rx="2"
       >
         <title>${tip}</title>
       </rect>
     `;
   }).join('');
 
+
   container.innerHTML = `
     <svg
       viewBox="0 0 ${W} ${H}"
+      width="${W}"
+      height="${H}"
       xmlns="http://www.w3.org/2000/svg"
-      style="width:100%;height:auto;overflow:visible;"
+      style="display:block;"
       role="img"
       aria-label="XP per transaction bar chart"
     >
@@ -141,12 +142,12 @@ function renderAuditChart(auditStats) {
   }
 
   // Donut geometry
-  const W   = 220;
-  const H   = 220;
+  const W   = 280;
+  const H   = 280;
   const cx  = W / 2;
   const cy  = H / 2;
-  const R   = 76;   // outer radius
-  const r   = 50;   // inner radius (donut hole)
+  const R   = 100;   // outer radius
+  const r   = 66;   // inner radius (donut hole)
 
   const donePct     = done / total;
   const receivedPct = received / total;
@@ -186,13 +187,13 @@ function renderAuditChart(auditStats) {
   const receivedSlice = donutSlice(doneAngle + gap / 2, 360 - gap / 2,       R, r);
 
   container.innerHTML = `
-    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;flex-direction:column;">
 
       <!-- Donut SVG -->
       <svg
         viewBox="0 0 ${W} ${H}"
         xmlns="http://www.w3.org/2000/svg"
-        style="width:160px;height:160px;flex-shrink:0;"
+        style="width:200px;height:200px;flex-shrink:0;"
         role="img"
         aria-label="Audit ratio donut chart"
       >
@@ -224,7 +225,7 @@ function renderAuditChart(auditStats) {
       </svg>
 
       <!-- Legend -->
-      <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;flex-direction:row ;gap:14px;">
 
         <div style="display:flex;flex-direction:column;gap:3px;">
           <div style="display:flex;align-items:center;gap:8px;">
@@ -254,7 +255,7 @@ function renderAuditChart(auditStats) {
             ${Math.round(receivedPct * 100)}%
           </span>
         </div>
-
+  
       </div>
     </div>
   `;

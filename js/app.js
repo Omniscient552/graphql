@@ -4,7 +4,7 @@
 
 import { getJWT, saveJWT, clearJWT, signIn } from './auth.js';
 import { fetchAllProfileData }               from './graphql.js';
-import { populateProfile, populateSidebarUser,
+import { populateSidebarUser,
          renderOverview, renderPersonalInfo,
          renderProjects, renderPiscines }    from './profile.js';
 import { renderCharts }                      from './charts.js';
@@ -163,10 +163,11 @@ function renderProfile() {
           <p class="sidebar-login"    id="sidebarLogin">—</p>
           <div class="sidebar-chips">
             <span class="sidebar-chip">
-              <span class="sidebar-chip-label">lvl</span>
+              <span class="sidebar-chip-label">Lvl</span>
               <span id="sidebarLevel">—</span>
             </span>
             <span class="sidebar-chip">
+              <span class="sidebar-chip-label">Ratio</span>
               <span id="sidebarRatio">—</span>
             </span>
           </div>

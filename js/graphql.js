@@ -159,12 +159,21 @@ export async function fetchTotalXPBytes() {
 
 // ============================================
 //  QUERY 5 — Projects (nested: result → object)
-//  Only type: "project", not exercises/raids
+//  Filtered to main curriculum, deduplicated:
+//  - group by project name
+//  - keep PASS over FAIL
+//  - if same status, keep latest by createdAt
 // ============================================
 export async function fetchProjects() {
   const data = await query(`
     {
-      result(order_by: { createdAt: desc }) {
+      result(
+        order_by: { createdAt: desc }
+        where: {
+          path:   { _nilike: "%piscine-ai%" }
+          object: { type: { _eq: "project" } }
+        }
+      ) {
         id
         grade
         createdAt
@@ -177,7 +186,27 @@ export async function fetchProjects() {
       }
     }
   `);
-  return (data?.result || []).filter(r => r.object?.type === 'project');
+
+  const results = data?.result || [];
+
+  // Dedup: if multiple PASS for same project → keep only latest PASS
+  // But keep all FAILs
+  const seenPass = new Set();
+  const filtered = [];
+
+  for (const r of results) {
+    const key    = r.object?.name || r.path;
+    const passed = r.grade >= 1;
+
+    if (passed) {
+      if (seenPass.has(key)) continue; // skip duplicate PASS
+      seenPass.add(key);
+    }
+
+    filtered.push(r);
+  }
+
+  return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
 // ============================================

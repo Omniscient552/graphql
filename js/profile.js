@@ -25,8 +25,8 @@ export function populateSidebarUser(data) {
   setText('avatarInitials', initials.toUpperCase());
   setText('sidebarFullname', fullName || login);
   setText('sidebarLogin', `@${login}`);
-  setText('sidebarLevel', `Lvl ${level ?? '—'}`);
-  setText('sidebarRatio', `${auditStats.ratio ?? '—'} ratio`);
+  setText('sidebarLevel', ` ${level ?? '—'}`);
+  setText('sidebarRatio', ` ${auditStats.ratio ?? '—'}`);
 }
 
 // ============================================
@@ -34,9 +34,18 @@ export function populateSidebarUser(data) {
 // ============================================
 export function renderOverview(data) {
   const { totalXP, auditStats, projects } = data;
-  const passed   = projects.filter(p => p.grade >= 1);
-  const total    = projects.length;
-  const passRate = total > 0 ? Math.round((passed.length / total) * 100) : 0;
+
+  // Unique projects via Map
+  const uniqueMap = new Map();
+  for (const p of projects) {
+    const key = p.object?.name || p.path;
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, true);
+    }
+  }
+  const total    = uniqueMap.size;
+  const passed   = projects.filter(p => p.grade >= 1).length;
+  const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
 
   return `
     <section class="stats-grid">
@@ -59,7 +68,7 @@ export function renderOverview(data) {
           <h2 class="chart-title">Audit ratio</h2>
           <p class="chart-sub">Done vs received</p>
         </div>
-        <div class="chart-body" id="chartAuditBody"></div>
+        <div class="chart-body chart-body--static" id="chartAuditBody"></div>
       </div>
     </section>
   `;
@@ -98,8 +107,8 @@ export function renderPersonalInfo(data) {
       <!-- Contact -->
       <div class="info-card">
         <p class="info-card-title">Contact</p>
-        ${infoRow('Email',        attrs.email       || '—', true)}
-        ${infoRow('Phone',        attrs.phone       || '—', true)}
+        ${infoRow('Email',        maskEmail(attrs.email),  true)}
+        ${infoRow('Phone',        attrs.phone ? attrs.phone.slice(0,2) + '••••••' + attrs.phone.slice(-3) : '-',  true)}
         ${infoRow('City',         attrs.addressCity || '—')}
         ${infoRow('Country',      attrs.addressCountry || '—')}
         ${infoRow('Street',       attrs.addressStreet  || '—')}
@@ -111,19 +120,10 @@ export function renderPersonalInfo(data) {
         ${infoRow('Date of birth',  formatDOB(attrs.dateOfBirth))}
         ${infoRow('Place of birth', attrs.placeOfBirth       || '—')}
         ${infoRow('Country',        attrs.countryOfBirth     || '—')}
-        ${infoRow('ID card',        attrs.idCardNumber ? '••••••' + attrs.idCardNumber.slice(-3) : '—')}
+        ${infoRow('ID card',        attrs.idCardNumber ? '••••••' + attrs.idCardNumber.slice(-2) : '—')}
         ${infoRow('ID issued',      formatDOB(attrs.dateIssue))}
         ${infoRow('ID expires',     formatDOB(attrs.dateExpiring))}
         ${infoRow('Issuing auth',   attrs.issuingAuthority   || '—')}
-      </div>
-
-      <!-- Emergency -->
-      <div class="info-card">
-        <p class="info-card-title">Emergency contact</p>
-        ${infoRow('Name',         [attrs.emergencyFirstName, attrs.emergencyLastName].filter(Boolean).join(' ') || '—')}
-        ${infoRow('Phone',        attrs.emergencyTel          || '—', true)}
-        ${infoRow('Affiliation',  attrs.emergencyAffiliation  || '—')}
-        ${infoRow('Medical info', attrs.medicalInfo            || '—')}
       </div>
 
     </div>
@@ -135,9 +135,20 @@ export function renderPersonalInfo(data) {
 // ============================================
 export function renderProjects(data) {
   const { projects } = data;
-  const total  = projects.length;
+
+  // Count unique projects via Map
+  // key = project name, value = true if any attempt passed
+  const uniqueMap = new Map();
+  for (const p of projects) {
+    const key = p.object?.name || p.path;
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, true);
+    }
+  }
+
+  const total  = uniqueMap.size;
   const passed = projects.filter(p => p.grade >= 1).length;
-  const failed = total - passed;
+  const failed = projects.filter(p => p.grade < 1).length;
 
   const rows = projects.length === 0
     ? `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px 0;">
@@ -276,6 +287,15 @@ function infoRow(key, value, mono = false) {
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value ?? '—';
+}
+
+// ma*****@gmail.com
+function maskEmail(email) {
+  if (!email) return '—';
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  const visible = local.slice(0, 2);
+  return `${visible}${'•'.repeat(Math.max(3, local.length - 2))}@${domain}`;
 }
 
 function formatXP(n) {
