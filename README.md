@@ -1,4 +1,4 @@
-# 01 Profile
+# Graphql
 
 A personal profile page for [01.tomorrow-school.ai](https://01.tomorrow-school.ai) built with JavaScript, GraphQL, and SVG charts. No frameworks, no build tools — files are connected to each other directly via `import` / `export`.
 
