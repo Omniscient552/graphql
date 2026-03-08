@@ -66,7 +66,7 @@ function renderLogin() {
           <div class="field-group">
             <label class="field-label" for="identifier">Username or Email</label>
             <input class="field-input" type="text" id="identifier"
-              placeholder="mkapan or you@email.com" autocomplete="username" />
+              placeholder="login or you@email.com" autocomplete="username" />
           </div>
 
           <div class="field-group">

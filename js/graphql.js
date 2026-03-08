@@ -210,24 +210,26 @@ export async function fetchProjects() {
 }
 
 // ============================================
-//  QUERY 6 — Piscines (with arguments: _ilike)
-//  FIX: use /astanahub/ path prefix
+//  QUERY 6 — Piscines (with exact paths)
+//  Returns all attempts per piscine
 // ============================================
 export async function fetchPiscineResults() {
-  const piscines = ['piscinego', 'piscine-js', 'piscine-rust', 'piscine-ai'];
-  const results  = {};
+  const piscines = [
+    { key: 'piscinego',    path: '/astanahub/piscinego'          },
+    { key: 'piscine-js',   path: '/astanahub/module/piscine-js'  },
+    { key: 'piscine-ai',   path: '/astanahub/module/piscine-ai'  },
+    { key: 'piscine-rust', path: '/astanahub/module/piscine-rust' },
+  ];
 
-  for (const piscine of piscines) {
+  const results = {};
+
+  for (const { key, path } of piscines) {
     const data = await query(
       `
       query GetPiscine($path: String!) {
         result(
-          where: {
-            path:  { _ilike: $path }
-            grade: { _is_null: false }
-          }
-          order_by: { createdAt: desc }
-          limit: 1
+          where: { path: { _eq: $path } }
+          order_by: { createdAt: asc }
         ) {
           grade
           path
@@ -235,13 +237,22 @@ export async function fetchPiscineResults() {
         }
       }
       `,
-      { path: `%${piscine}%` }
+      { path }
     );
 
-    const found = data?.result?.[0];
-    results[piscine] = found
-      ? { passed: found.grade >= 1, grade: found.grade, date: found.createdAt }
-      : null;
+    const attempts = data?.result || [];
+
+    if (attempts.length === 0) {
+      results[key] = null;
+      continue;
+    }
+
+    // All attempts, each with passed flag
+    results[key] = attempts.map(r => ({
+      grade:  r.grade,
+      passed: r.grade >= 1,
+      date:   r.createdAt,
+    }));
   }
 
   return results;
@@ -312,7 +323,6 @@ export async function fetchAllProfileData() {
     fetchXPPerProject(),
   ]);
 
-  // totalXP as-is (e.g. 637750)
   const totalXP = totalXPBytes;
 
   return {

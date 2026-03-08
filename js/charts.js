@@ -183,8 +183,8 @@ function renderAuditChart(auditStats) {
   // Gap between slices (degrees)
   const gap = total > 0 ? 3 : 0;
 
-  const doneSlice     = donutSlice(0,                   doneAngle - gap,     R, r);
-  const receivedSlice = donutSlice(doneAngle + gap / 2, 360 - gap / 2,       R, r);
+  const doneSlice     = donutSlice(0, doneAngle - gap, R, r);
+  const receivedSlice = donutSlice(doneAngle + gap / 2, 360 - gap / 2, R, r);
 
   container.innerHTML = `
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;flex-direction:column;">
@@ -211,7 +211,7 @@ function renderAuditChart(auditStats) {
         <text
           x="${cx}" y="${cy - 8}"
           text-anchor="middle" dominant-baseline="middle"
-          font-size="22" font-weight="300"
+          font-size="30" font-weight="300"
           fill="#1a1a1a" font-family="DM Sans, sans-serif"
           letter-spacing="-0.5"
         >${auditStats.ratio}</text>
@@ -219,7 +219,7 @@ function renderAuditChart(auditStats) {
         <text
           x="${cx}" y="${cy + 14}"
           text-anchor="middle"
-          font-size="10" fill="#a0a0a0"
+          font-size="18" fill="#a0a0a0"
           font-family="DM Sans, sans-serif"
         >ratio</text>
       </svg>

@@ -388,3 +388,37 @@
   .main       { margin-left: 0; padding: 0 16px 40px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* --- Piscine attempts list --- */
+.piscine-attempts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.piscine-attempt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.piscine-attempt-num {
+  color: var(--text-muted);
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.piscine-attempt-date {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.piscine-attempt-grade {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+}

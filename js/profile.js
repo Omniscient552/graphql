@@ -218,9 +218,9 @@ export function renderPiscines(data) {
   ];
 
   const cards = piscineList.map(({ key, label }) => {
-    const result = piscines[key];
+    const attempts = piscines[key]; // now an array of attempts or null
 
-    if (!result) {
+    if (!attempts) {
       return `
         <div class="piscine-card not-attempted">
           <div class="piscine-card-header">
@@ -238,23 +238,38 @@ export function renderPiscines(data) {
       `;
     }
 
-    const badgeClass = result.passed ? 'badge badge-pass' : 'badge badge-fail';
-    const badgeText  = result.passed ? 'PASS' : 'FAIL';
-    const date       = result.date ? formatDate(new Date(result.date)) : '—';
-    const grade      = result.grade != null ? result.grade.toFixed(2) : '—';
+    // Final status: PASS if any attempt passed
+    const anyPassed   = attempts.some(a => a.passed);
+    const finalBadge  = anyPassed ? 'badge badge-pass' : 'badge badge-fail';
+    const finalText   = anyPassed ? 'PASS' : 'FAIL';
+
+    // Attempts rows (oldest first = asc order from API)
+    const attemptsHTML = attempts.map((a, i) => {
+      const badge = a.passed ? 'badge badge-pass' : 'badge badge-fail';
+      const text  = a.passed ? 'PASS' : 'FAIL';
+      const date  = a.date ? formatDate(new Date(a.date)) : '—';
+      const grade = a.grade != null ? a.grade.toFixed(2) : '—';
+      return `
+        <div class="piscine-attempt">
+          <span class="piscine-attempt-num">Attempt ${i + 1}</span>
+          <span class="piscine-attempt-date">${date}</span>
+          <span class="piscine-attempt-grade">${grade}</span>
+          <span class="${badge}">${text}</span>
+        </div>
+      `;
+    }).join('');
 
     return `
       <div class="piscine-card">
         <div class="piscine-card-header">
           <div>
             <p class="piscine-card-name">${label}</p>
-            <p class="piscine-card-date">${date}</p>
+            <p class="piscine-card-date">${attempts.length} attempt${attempts.length > 1 ? 's' : ''}</p>
           </div>
-          <span class="${badgeClass}">${badgeText}</span>
+          <span class="${finalBadge}">${finalText}</span>
         </div>
-        <div class="piscine-grade-row">
-          <span class="piscine-grade-label">Grade</span>
-          <span class="piscine-grade-value">${grade}</span>
+        <div class="piscine-attempts">
+          ${attemptsHTML}
         </div>
       </div>
     `;
