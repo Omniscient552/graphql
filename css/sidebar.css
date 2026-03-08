@@ -6,7 +6,7 @@
   position: fixed;
   top: 0; left: 0;
   width: var(--sidebar-w);
-  height: 100vh;
+  height: 100%;
   background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
