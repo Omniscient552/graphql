@@ -1,6 +1,4 @@
-// ============================================
-//  js/auth.js — JWT helpers
-// ============================================
+// auth.js — JWT helpers
 
 const DOMAIN     = '01.tomorrow-school.ai';
 const SIGNIN_URL = `https://${DOMAIN}/api/auth/signin`;
