@@ -1,6 +1,4 @@
-/* ============================================
-   css/profile.css — Profile main content
-   ============================================ */
+/* profile.css — Profile main content */
 
 /* --- Layout --- */
 .profile-page {
@@ -34,7 +32,7 @@
   color: var(--text-muted);
 }
 
-/* --- Loading state --- */
+/* --- States --- */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -46,7 +44,6 @@
   font-size: 14px;
 }
 
-/* --- Error state --- */
 .error-state {
   display: flex;
   flex-direction: column;
@@ -76,6 +73,12 @@
 }
 
 .btn-retry:hover { background: var(--accent-dark); }
+
+/* --- Empty chart placeholder --- */
+.chart-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+}
 
 /* ============================================
    VIEW: OVERVIEW
@@ -113,7 +116,7 @@
   line-height: 1;
 }
 
-/* Charts */
+/* --- Charts --- */
 .charts-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -154,6 +157,65 @@
 
 .chart-body--static {
   overflow: visible;
+}
+
+/* --- Audit donut chart --- */
+.audit-chart-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.audit-chart-svg {
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.audit-legend {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+}
+
+.audit-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.audit-legend-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audit-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.audit-legend-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.audit-legend-value {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  padding-left: 16px;
+}
+
+.audit-legend-pct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-left: 16px;
 }
 
 /* ============================================
@@ -274,9 +336,9 @@
   vertical-align: middle;
 }
 
-.projects-table td:first-child { padding-left: 0; }
-.projects-table tbody tr:last-child td { border-bottom: none; }
-.projects-table tbody tr:hover td { background: var(--accent-faint); }
+.projects-table td:first-child           { padding-left: 0; }
+.projects-table tbody tr:last-child td   { border-bottom: none; }
+.projects-table tbody tr:hover td        { background: var(--accent-faint); }
 
 .project-name {
   font-family: var(--font-mono);
@@ -287,7 +349,7 @@
   text-overflow: ellipsis;
 }
 
-.grade-value {
+.xp-value {
   font-family: var(--font-mono);
   font-size: 12px;
 }
@@ -309,6 +371,12 @@
   white-space: nowrap;
 }
 
+.table-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 24px 0;
+}
+
 /* ============================================
    VIEW: PISCINES
    ============================================ */
@@ -326,7 +394,8 @@
   transition: box-shadow 0.15s;
 }
 
-.piscine-card:hover { box-shadow: var(--shadow); }
+.piscine-card:hover         { box-shadow: var(--shadow); }
+.piscine-card.not-attempted { opacity: 0.5; }
 
 .piscine-card-header {
   display: flex;
@@ -370,26 +439,7 @@
   color: var(--text-primary);
 }
 
-.piscine-card.not-attempted {
-  opacity: 0.5;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 1100px) {
-  .stats-grid     { grid-template-columns: repeat(2, 1fr); }
-  .charts-section { grid-template-columns: 1fr; }
-  .info-grid      { grid-template-columns: 1fr; }
-  .piscines-grid  { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 760px) {
-  .main       { margin-left: 0; padding: 0 16px 40px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* --- Piscine attempts list --- */
+/* --- Piscine attempts --- */
 .piscine-attempts {
   display: flex;
   flex-direction: column;
@@ -421,4 +471,70 @@
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-primary);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1100px) {
+  .stats-grid     { grid-template-columns: repeat(2, 1fr); }
+  .charts-section { grid-template-columns: 1fr; }
+  .info-grid      { grid-template-columns: 1fr; }
+  .piscines-grid  { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .main {
+    margin-left: 0;
+    padding: 0 16px 40px;
+  }
+
+  .topbar {
+    padding: 72px 0 20px;
+    margin-bottom: 20px;
+  }
+
+  .topbar-title { font-size: 18px; }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card   { padding: 14px 14px 12px; }
+  .stat-value  { font-size: 22px; }
+
+  .charts-section {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .chart-card { padding: 16px; }
+
+  .chart-body {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .info-card { padding: 14px; }
+
+  .projects-section { padding: 16px; }
+
+  .projects-table th,
+  .projects-table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .project-name { max-width: 130px; font-size: 11px; }
+
+  .piscines-grid { grid-template-columns: 1fr; gap: 10px; }
+  .piscine-card  { padding: 16px; }
 }

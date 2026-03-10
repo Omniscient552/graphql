@@ -1,10 +1,9 @@
-/* ============================================
-   css/sidebar.css — Navigation sidebar
-   ============================================ */
+/* sidebar.css — Navigation sidebar */
 
 .sidebar {
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: var(--sidebar-w);
   height: 100%;
   background: var(--surface);
@@ -14,9 +13,10 @@
   padding: 28px 16px 24px;
   overflow-y: auto;
   z-index: 100;
+  min-height: 100vh;
 }
 
-/* --- User block (always visible) --- */
+/* --- User block --- */
 .sidebar-user {
   display: flex;
   flex-direction: column;
@@ -102,33 +102,21 @@
   gap: 2px;
 }
 
-.nav-group-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 0 10px;
-  margin-bottom: 4px;
-  margin-top: 8px;
-}
-
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--text-secondary);
-  cursor: pointer;
-  border: none;
   background: none;
+  border: none;
   width: 100%;
   text-align: left;
-  font-family: var(--font-sans);
+  cursor: pointer;
   transition: background 0.12s, color 0.12s;
-  position: relative;
 }
 
 .nav-item:hover {
@@ -155,7 +143,9 @@
 }
 
 /* --- Spacer + logout --- */
-.sidebar-spacer { flex: 1; }
+.sidebar-spacer {
+  flex: 1;
+}
 
 .btn-logout {
   display: flex;
@@ -179,7 +169,59 @@
   border-color: #fca5a5;
 }
 
+/* --- Mobile hamburger --- */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
 /* --- Responsive --- */
 @media (max-width: 760px) {
-  .sidebar { display: none; }
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 150;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.visible {
+    display: block;
+  }
 }

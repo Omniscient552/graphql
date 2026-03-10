@@ -1,6 +1,4 @@
-/* ============================================
-   css/login.css — Login view styles
-   ============================================ */
+/* login.css — Login view */
 
 .login-page {
   display: flex;
@@ -8,7 +6,7 @@
   min-height: 100vh;
 }
 
-/* --- Left decorative panel --- */
+/* --- Left panel --- */
 .login-panel-left {
   position: relative;
   width: 42%;
@@ -75,25 +73,31 @@
 }
 
 .c1 {
-  width: 320px; height: 320px;
-  bottom: -80px; right: -80px;
+  width: 320px;
+  height: 320px;
+  bottom: -80px;
+  right: -80px;
   border: 1px solid rgba(139, 92, 246, 0.12);
 }
 
 .c2 {
-  width: 200px; height: 200px;
-  bottom: -20px; right: -20px;
+  width: 200px;
+  height: 200px;
+  bottom: -20px;
+  right: -20px;
   border: 1px solid rgba(139, 92, 246, 0.20);
   background: rgba(139, 92, 246, 0.04);
 }
 
 .c3 {
-  width: 80px; height: 80px;
-  bottom: 60px; right: 60px;
+  width: 80px;
+  height: 80px;
+  bottom: 60px;
+  right: 60px;
   background: rgba(139, 92, 246, 0.10);
 }
 
-/* --- Right form panel --- */
+/* --- Right panel --- */
 .login-panel-right {
   flex: 1;
   display: flex;
@@ -229,9 +233,9 @@
   transition: background 0.15s, transform 0.1s;
 }
 
-.btn-submit:hover:not(:disabled) { background: var(--accent-dark); }
+.btn-submit:hover:not(:disabled)  { background: var(--accent-dark); }
 .btn-submit:active:not(:disabled) { transform: scale(0.99); }
-.btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+.btn-submit:disabled              { opacity: 0.65; cursor: not-allowed; }
 
 .btn-loader {
   display: none;

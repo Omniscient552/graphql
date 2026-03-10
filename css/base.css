@@ -1,6 +1,4 @@
-/* ============================================
-   css/base.css — Variables, reset, utilities
-   ============================================ */
+/* base.css — Variables, reset, utilities */
 
 /* --- Variables --- */
 :root {
@@ -14,10 +12,10 @@
   --accent-light: #ede9fe;
   --accent-faint: #f5f3ff;
 
-  --green:        #22c55e;
-  --green-bg:     #f0fdf4;
-  --red:          #ef4444;
-  --red-bg:       #fff1f2;
+  --green:    #22c55e;
+  --green-bg: #f0fdf4;
+  --red:      #ef4444;
+  --red-bg:   #fff1f2;
 
   --text-primary:     #1a1a1a;
   --text-secondary:   #6b6b6b;
@@ -28,10 +26,10 @@
   --error-border: #fca5a5;
   --error-text:   #dc2626;
 
-  --panel-bg:     #1a1523;
-  --panel-sub:    #a78bfa;
+  --panel-bg:  #1a1523;
+  --panel-sub: #a78bfa;
 
-  --sidebar-w:    260px;
+  --sidebar-w: 260px;
 
   --radius-sm: 6px;
   --radius:    10px;
@@ -89,7 +87,7 @@ body {
   animation: spin 0.7s linear infinite;
 }
 
-/* Shared badge */
+/* --- Badges --- */
 .badge {
   font-size: 10px;
   font-weight: 500;
@@ -99,7 +97,7 @@ body {
 
 .badge-pass { background: var(--green-bg); color: var(--green); }
 .badge-fail { background: var(--red-bg);   color: var(--red);   }
-.badge-na   {
+.badge-na {
   background: var(--bg);
   color: var(--text-muted);
   border: 1px solid var(--border);

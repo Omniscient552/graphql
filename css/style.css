@@ -1,7 +1,4 @@
-/* ============================================
-   css/style.css — Entry point
-   Only imports, no styles here
-   ============================================ */
+/* style.css — Entry point */
 
 @import url('base.css');
 @import url('login.css');
