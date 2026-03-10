@@ -32,8 +32,8 @@ function renderXPChart(transactions) {
   const maxXP = Math.max(...bars.map(b => b.xp));
 
   // SVG dimensions — width is dynamic based on bar count
-  const BAR_W  = 5;    // bar width px
-  const GAP    = 2;    // gap between bars px
+  const BAR_W  = 15;    // bar width px
+  const GAP    = 10;    // gap between bars px
   const PAD    = { top: 24, right: 24, bottom: 36, left: 56 };
   const H      = 300;
   const innerW = bars.length * (BAR_W + GAP) - GAP;
@@ -178,7 +178,6 @@ function renderAuditChart(auditStats) {
   }
 
   const doneAngle     = donePct * 360;
-  const receivedAngle = receivedPct * 360;
 
   // Gap between slices (degrees)
   const gap = total > 0 ? 3 : 0;
@@ -279,11 +278,11 @@ function getSpreadIndices(length, count) {
 
 // "Jan '24"
 function formatChartDate(date) {
-  return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 // XP already in kB (converted in graphql.js)
-function formatXP(n) {
+export function formatXP(n) {
   if (n == null) return '—';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} MB`;
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} kB`;

@@ -4,6 +4,8 @@
 //  returns an HTML string for <main>
 // ============================================
 
+import { formatXP } from './charts.js';
+
 // ── Entry point called by app.js ────────────
 export function populateProfile(data) {
   populateSidebarUser(data);
@@ -51,7 +53,6 @@ export function renderOverview(data) {
     <section class="stats-grid">
       ${statCard('Total XP',      formatXP(totalXP))}
       ${statCard('Projects done', total)}
-      ${statCard('Pass rate',     `${passRate}%`)}
       ${statCard('Audit ratio',   auditStats.ratio ?? '—')}
     </section>
 
@@ -134,7 +135,8 @@ export function renderPersonalInfo(data) {
 //  VIEW: PROJECTS
 // ============================================
 export function renderProjects(data) {
-  const { projects } = data;
+  const { projects, xpPerProject } = data;
+  // console.log(projects)
 
   // Count unique projects via Map
   // key = project name, value = true if any attempt passed
@@ -143,6 +145,15 @@ export function renderProjects(data) {
     const key = p.object?.name || p.path;
     if (!uniqueMap.has(key)) {
       uniqueMap.set(key, true);
+    }
+  }
+
+  for (const p of projects) {
+    for (const xp of xpPerProject) {
+      if (p.path === xp.path){
+        p.amount = xp.amount
+        console.log("Path: ", p.path, "Amount: ", p.amount)
+      }
     }
   }
 
@@ -156,14 +167,14 @@ export function renderProjects(data) {
        </td></tr>`
     : projects.map(p => {
         const name   = p.object?.name || p.path?.split('/').pop() || '—';
-        const grade  = p.grade != null ? p.grade.toFixed(2) : '—';
+        const xp  = p.amount != null ? formatXP(p.amount) : '—';
         const isPassed = p.grade >= 1;
         const date   = p.createdAt ? formatDate(new Date(p.createdAt)) : '—';
 
         return `
           <tr>
             <td><span class="project-name" title="${name}">${name}</span></td>
-            <td><span class="grade-value">${grade}</span></td>
+            <td><span class="xp-value">${xp}</span></td>
             <td>
               <span class="status-badge ${isPassed ? 'pass' : 'fail'}">
                 ${isPassed ? 'PASS' : 'FAIL'}
@@ -179,7 +190,6 @@ export function renderProjects(data) {
       ${statCard('Total', total)}
       ${statCard('Passed', passed)}
       ${statCard('Failed', failed)}
-      ${statCard('Pass rate', total > 0 ? `${Math.round((passed/total)*100)}%` : '—')}
     </div>
 
     <div class="projects-section">
@@ -192,7 +202,7 @@ export function renderProjects(data) {
           <thead>
             <tr>
               <th>Project</th>
-              <th>Grade</th>
+              <th>XP</th>
               <th>Status</th>
               <th>Date</th>
             </tr>
@@ -240,13 +250,14 @@ export function renderPiscines(data) {
 
     // Final status: PASS if any attempt passed
     const anyPassed   = attempts.some(a => a.passed);
-    const finalBadge  = anyPassed ? 'badge badge-pass' : 'badge badge-fail';
-    const finalText   = anyPassed ? 'PASS' : 'FAIL';
+    const anyGraded   = attempts.some(a => a.grade != null);
+    const finalBadge  = anyPassed ? 'badge badge-pass' : anyGraded ? 'badge badge-fail' : 'badge badge-na';
+    const finalText   = anyPassed ? 'PASS' : anyGraded ? 'FAIL' : 'n/a';
 
     // Attempts rows (oldest first = asc order from API)
     const attemptsHTML = attempts.map((a, i) => {
-      const badge = a.passed ? 'badge badge-pass' : 'badge badge-fail';
-      const text  = a.passed ? 'PASS' : 'FAIL';
+      const badge = a.grade == null ? 'badge badge-na' : a.passed ? 'badge badge-pass' : 'badge badge-fail';
+      const text  = a.grade == null ? 'n/a' : a.passed ? 'PASS' : 'FAIL';
       const date  = a.date ? formatDate(new Date(a.date)) : '—';
       const grade = a.grade != null ? a.grade.toFixed(2) : '—';
       return `
@@ -311,13 +322,6 @@ function maskEmail(email) {
   if (!domain) return email;
   const visible = local.slice(0, 2);
   return `${visible}${'•'.repeat(Math.max(3, local.length - 2))}@${domain}`;
-}
-
-function formatXP(n) {
-  if (n == null) return "—";
-  if (n >= 1_000_000) return `${Math.round(n / 1_000_000)} MB`;
-  if (n >= 1_000)     return `${Math.round(n / 1_000)} kB`;
-  return `${n} B`;
 }
 
 function formatDate(date) {

@@ -72,6 +72,7 @@ export async function fetchXPTransactions() {
         transactions(
           where: {
             type:    { _eq: "xp" }
+            path:    { _nlike: "%checkpoint-zero%"}
             amount:  { _gt: 0 }
             eventId: { _eq: 96 }
           }
@@ -250,7 +251,7 @@ export async function fetchPiscineResults() {
     // All attempts, each with passed flag
     results[key] = attempts.map(r => ({
       grade:  r.grade,
-      passed: r.grade >= 1,
+      passed: r.grade != null && r.grade >= 1,
       date:   r.createdAt,
     }));
   }
@@ -292,8 +293,7 @@ export async function fetchXPPerProject() {
   }
 
   return Object.values(grouped)
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 10);
+    .sort((a, b) => b.amount - a.amount);
 }
 
 // ============================================
